@@ -1,9 +1,9 @@
-package aichat.controller;
+package com.aichat.controller;
 
 
-import aichat.redis.RedisUtil;
-import aichat.utils.JwtUtil;
-import aichat.utils.Result;
+import com.aichat.redis.RedisUtil;
+import com.aichat.utils.JwtUtil;
+import com.aichat.utils.Result;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
@@ -47,11 +47,11 @@ public class AiChatController {
         String id = redisUtil.get(key);
         String jwt = jwtUtil.createJWT(id);
         JwtUtil.setJwtCookie(response, jwt);
-        return Result.ok(true);
+        return Result.ok(id);
     }
 
     @PostMapping("/validate")
-    public Result<String> validateJwt(@RequestParam String message,HttpServletRequest request) {
+    public Result<String> validateJwt(@RequestParam String message,@RequestParam String UserId,HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -60,6 +60,9 @@ public class AiChatController {
                     try {
                         Claims claims = jwtUtil.validateJWT(token);
                         String sender_name = claims.getSubject();
+                        if(!UserId.equals(sender_name)){
+                            return Result.fail("用户验证失败");
+                        }
                         String url = "https://api.minimax.chat/v1/text/chatcompletion_pro?GroupId=" + GROUP_ID;
                         String apiKey = API_KEY;
                         // Prepare the request body

@@ -78,8 +78,4 @@ public class CallBackController {
         log.info("replyContent:{}", replyContent);
         return replyContent;
     }
-
-    public String buildKey(String...strObjs){
-        return Stream.of(strObjs).collect(Collectors.joining(CACHE_KEY_SEPARATOR));
-    }
 }

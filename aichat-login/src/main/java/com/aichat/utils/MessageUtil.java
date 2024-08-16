@@ -1,4 +1,4 @@
-package aichat.utils;
+package com.aichat.utils;
 
 import org.dom4j.Document;
 import org.dom4j.Element;

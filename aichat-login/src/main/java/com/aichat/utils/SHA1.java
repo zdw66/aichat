@@ -1,4 +1,4 @@
-package aichat.utils;
+package com.aichat.utils;
 
 
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package aichat.redis;
+package com.aichat.redis;
 
 
 import lombok.extern.slf4j.Slf4j;

@@ -24,6 +24,10 @@ public class ReceiveTextMsgHandler implements WxChatMsgHandler{
     private static final String LOGIN_PREFIX = "loginCode";
 
     private static Set<String> UserNmae= new HashSet<>();
+    private static final int CODE_LENGTH = 6;
+    private static final int EXPIRY_TIME = 5 * 60 * 1000; // 5分钟 (以毫秒为单位)
+    private static Set<String> generatedCodes = new HashSet<>();
+    private static long codeGenerationTime = 0;
 
     @Resource
     private RedisUtil redisUtil;
@@ -55,11 +59,13 @@ public class ReceiveTextMsgHandler implements WxChatMsgHandler{
                     "【会员卡系统】获取超市会员管理系统源码链接。\n" +
                     "【投票系统】获取在线投系统源码链接。" ;
         }else if("验证码".equals(content)){
-            Random random = new Random();
-            int num = random.nextInt(1000000);
-            numContent="您当前的验证码是："+num+"(五分钟内有效)";
-            String numKey = redisUtil.buildKey(LOGIN_PREFIX,String.valueOf(num));
+
+            String uniqueCode = generateUniqueCode();
+            numContent="您当前的验证码是："+uniqueCode+"(五分钟内有效)";
+
+            String numKey = redisUtil.buildKey(LOGIN_PREFIX,uniqueCode);
             redisUtil.setNx(numKey,fromUserName, 5L, TimeUnit.MINUTES);
+
         }else if("登录".equals(content)){
             if(!UserNmae.contains(fromUserName)){
                 UserNmae.add(fromUserName);
@@ -100,5 +106,36 @@ public class ReceiveTextMsgHandler implements WxChatMsgHandler{
                 "</xml>";
 
         return replyContent;
+    }
+    public static String generateUniqueCode() {
+        Random random = new Random();
+        String code;
+
+        // 确保生成的验证码唯一且在有效期内
+        do {
+            code = String.format("%06d", random.nextInt(1000000)); // 随机生成6位数
+        } while (generatedCodes.contains(code) || !isCodeValid());
+
+        // 添加到已生成集并记录生成时间
+        generatedCodes.add(code);
+        codeGenerationTime = System.currentTimeMillis();
+
+        // 清理过期的验证码
+        cleanUpExpiredCodes();
+
+        return code;
+    }
+
+    private static boolean isCodeValid() {
+        return System.currentTimeMillis() - codeGenerationTime < EXPIRY_TIME;
+    }
+
+    private static void cleanUpExpiredCodes() {
+        long currentTime = System.currentTimeMillis();
+
+        if (currentTime - codeGenerationTime >= EXPIRY_TIME) {
+            generatedCodes.clear(); // 清空过期的验证码
+            codeGenerationTime = currentTime; // 更新最后生成时间
+        }
     }
 }

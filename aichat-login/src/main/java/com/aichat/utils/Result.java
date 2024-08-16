@@ -1,7 +1,7 @@
-package aichat.utils;
+package com.aichat.utils;
 
 
-import aichat.enums.ResultCodeEnum;
+import com.aichat.enums.ResultCodeEnum;
 import lombok.Data;
 
 @Data

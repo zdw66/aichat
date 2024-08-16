@@ -1,4 +1,4 @@
-package aichat.enums;
+package com.aichat.enums;
 
 import lombok.Getter;
 
